@@ -5,6 +5,8 @@ import sys
 import tempfile
 import time
 
+import datetime as dt
+
 from scapy.all import *
 
 from p4pktgen.p4_hlir import P4_HLIR
@@ -12,6 +14,13 @@ from p4pktgen.config import Config
 from p4pktgen.switch.runtime_CLI import RuntimeAPI, PreType, thrift_connect, load_json_config
 from p4pktgen.p4_hlir import SourceInfo
 
+#######
+
+visited_actions = set()
+visited_paths = set()
+packet_count = 0
+
+#######
 
 def logf_append(s):
     return  # Comment out this line to debug things with logf_append
@@ -340,6 +349,12 @@ class SimpleSwitch:
         self.modified_tables = []
 
     def send_and_check_only_1_packet(self, packet, source_info_to_node_name):
+        global visited_actions
+        global visited_paths
+        global packet_count
+        packet_count += 1
+        extracted_path_actions = []
+
         # TBD: Right now we always send packets into port 0 of
         # simple_switch.  Later should generalize to enable sending
         # packets into any of several ports.
@@ -372,6 +387,12 @@ class SimpleSwitch:
                 continue
             m = re.search(r'Action ([0-9a-zA-Z_.]*)$', line)
             if m is not None:
+                ########
+                va = tuple([table_name, m.group(1)])
+                if va not in visited_actions:
+                    print("VIN_ACTION", dt.datetime.now(), '|', packet_count, '|', va)
+                    visited_actions.add(va)
+                extracted_path_actions.append((table_name, m.group(1)))
                 if m.group(1) != 'add_header':
                     assert prev_match == 'table_apply'
                     extracted_path.append((table_name, m.group(1)))
@@ -469,6 +490,11 @@ class SimpleSwitch:
             logging.debug(line.strip())
             if 'Pipeline \'egress\': end' in line or 'Dropping packet at the end of ingress' in line:
                 break
+
+        extracted_path_actions = tuple(extracted_path_actions)
+        if extracted_path_actions not in visited_paths:
+            print("VIN_PATH", dt.datetime.now(), '|', packet_count, '|', extracted_path_actions)
+            visited_paths.add(extracted_path_actions)
 
         return extracted_path
 

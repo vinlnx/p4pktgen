@@ -686,12 +686,20 @@ class Table:
                        "", self.action_names[i], self.name)
                 logging.error(msg)
                 raise ValueError(msg)
-            self.action_name_to_id[self.action_names[i]] = self.action_ids[i]
+
+            if self.action_names[i] == 'NoAction':
+                del self.action_id_to_name[self.action_ids[i]]
+                del self.action_ids[i]
+                del self.action_names[i]
+            else:
+                self.action_name_to_id[self.action_names[i]] = self.action_ids[i]
 
         self.base_default_next_name = json_obj['base_default_next']
 
         self.next_tables = {}
         for action_name, next_table_name in json_obj['next_tables'].items():
+            if action_name == 'NoAction':
+                continue
             if action_name == '__HIT__':
                 self.next_tables[(action_name, HIT_ID)] = next_table_name
             elif action_name == '__MISS__':

@@ -565,6 +565,7 @@ class Translator(object):
                         'modify_field_rng_uniform',
                         'modify_field_with_hash_based_offset',
                         'clone_ingress_pkt_to_egress',
+                        'register_read', 'register_write',
                         'clone_egress_pkt_to_egress', 'count',
                         'execute_meter', 'generate_digest']:
                     if not Config().get_allow_unimplemented_primitives():

@@ -11,7 +11,11 @@ from p4pktgen.util.test_case_writer import TestCaseWriter
 from p4pktgen.util.visualization import generate_graphviz_graph
 
 
+import datetime as dt
+
 def main():
+    print("VIN_START", dt.datetime.now())
+
     #Parse the command line arguments provided at run time.
     parser = argparse.ArgumentParser(description='P4 device input file')
     parser.add_argument(
@@ -252,6 +256,8 @@ def main():
 
     # Build the IR
     generate_test_cases(args.input_file)
+
+    print("VIN_END", dt.datetime.now())
 
 
 def generate_visualizations(input_file):
